@@ -96,6 +96,11 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ email, password }),
     }),
+  register: (email: string, password: string, name?: string) =>
+    request<{ token: string; user: any }>(`/auth/register`, {
+      method: "POST",
+      body: JSON.stringify({ email, password, name, userType: "public" }),
+    }),
   adminDashboard: () => request<any>(`/admin/dashboard`),
   adminComplaints: (params = "") => request<any>(`/admin/complaints${params}`),
   updateComplaint: (id: string, body: unknown) =>

@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useI18n, LanguageToggle } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth";
 
 export default function Navbar() {
   const { t } = useI18n();
+  const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
 
   const links = [
@@ -34,6 +36,20 @@ export default function Navbar() {
             </Link>
           ))}
           <LanguageToggle />
+          {user ? (
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-slate-500">
+                Hi, {user.name || user.email.split("@")[0]}
+              </span>
+              <button onClick={logout} className="btn-outline">
+                Logout
+              </button>
+            </div>
+          ) : (
+            <Link href="/login" className="btn-outline">
+              Sign in
+            </Link>
+          )}
           <Link href="/report" className="btn-primary">
             {t("nav.report")}
           </Link>
@@ -67,6 +83,27 @@ export default function Navbar() {
                 {l.label}
               </Link>
             ))}
+            <div className="mt-2 border-t border-slate-100 pt-2">
+              {user ? (
+                <button
+                  onClick={() => {
+                    logout();
+                    setOpen(false);
+                  }}
+                  className="py-2 text-sm font-medium text-slate-600 hover:text-brand"
+                >
+                  Logout ({user.name || user.email.split("@")[0]})
+                </button>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setOpen(false)}
+                  className="block py-2 text-sm font-medium text-slate-600 hover:text-brand"
+                >
+                  Sign in / Create account
+                </Link>
+              )}
+            </div>
           </div>
         </nav>
       )}
