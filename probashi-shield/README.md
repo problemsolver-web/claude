@@ -27,9 +27,19 @@ The repo is a monorepo with two apps:
 
 ```
 probashi-shield/
-├── backend/    # Express REST API (port 4000)
-└── frontend/   # Next.js app (port 3000)
+├── backend/         # Express REST API (port 4000)
+│   ├── prisma/      # schema + seed
+│   ├── scripts/     # BMET CSV importer
+│   └── data/        # sample BMET CSV
+├── frontend/        # Next.js app (port 3000), bilingual EN/বাংলা
+├── start.sh         # zero-dependency dev runner
+├── package.json     # one-command dev runner (concurrently)
+├── README.md
+└── PITCH.md         # 5-min pitch script + live demo walkthrough + judge Q&A
 ```
+
+> 🎤 **Presenting this?** Read **[PITCH.md](./PITCH.md)** — it has the word-for-word
+> pitch, a 90-second demo script, and prepared answers to tough judge questions.
 
 ---
 
@@ -37,7 +47,23 @@ probashi-shield/
 
 You need **Node.js 18+** installed.
 
-### 1. Backend
+### Option A - one command (recommended)
+
+From the `probashi-shield/` root:
+
+```bash
+npm install              # installs the dev runner (concurrently)
+npm run setup            # installs backend + frontend deps, creates & seeds DB
+npm run dev              # starts API (:4000) and web (:3000) together
+```
+
+> No-dependency alternative: `bash start.sh setup` (first run), then `bash start.sh`.
+
+Then open <http://localhost:3000>.
+
+### Option B - manual (two terminals)
+
+#### 1. Backend
 
 ```bash
 cd backend
@@ -60,6 +86,10 @@ npm run dev                   # app on http://localhost:3000
 
 Open <http://localhost:3000> and try searching **"Dubai Dream"** (🔴 blacklisted),
 **"Gulf Gateway"** (🟡 caution), or **"Al-Amin"** (🟢 verified).
+
+> 🌐 **Bilingual:** use the **বাংলা / English** toggle in the navbar. The landing
+> and verification experience is fully translated - critical for the rural
+> workers this serves.
 
 ### Demo accounts
 
@@ -84,7 +114,9 @@ Admin dashboard: <http://localhost:3000/admin/login>
 6. **Country fees** (`/destinations`) — official government fees + salaries, so
    workers spot overcharging.
 7. **Safety guide** (`/safety`) — pre-departure checklist + red flags.
-8. **Ministry dashboard** (`/admin`) — metrics, complaint management, one-click
+8. **Impact / transparency** (`/impact`) — public dashboard: searches served,
+   reports filed, verified fraud, money-loss reported, fraud-type breakdown.
+9. **Ministry dashboard** (`/admin`) — metrics, complaint management, one-click
    blacklist.
 
 ---
@@ -99,6 +131,7 @@ Admin dashboard: <http://localhost:3000/admin/login>
 | POST | `/complaints` | Submit a fraud report |
 | GET | `/complaints/track/:trackingNumber` | Report status |
 | GET | `/destinations` | Country fee/salary guides |
+| GET | `/stats/public` | Aggregate metrics for the Impact page |
 | POST | `/sms/verify` | SMS command handler (`VERIFY`, `FEE`, `TIPS`, `HELP`) |
 | POST | `/sms/twilio-webhook` | TwiML webhook for real Twilio SMS |
 | POST | `/auth/login` · `/auth/register` · GET `/auth/me` | Auth |
@@ -155,6 +188,22 @@ aggregators (Grameenphone / Banglalink / Robi shortcode + USSD).
 Seed data is **illustrative** and lives in `backend/prisma/seed.ts`. Agency
 names are fictional. In production, the `agencies` table is populated by syncing
 BMET's official licensed-agency list (a scheduled scraper/import job).
+
+## 📥 Importing real BMET data (CSV)
+
+A CSV importer is included to replace the demo seed with real licensed-agency
+data. Existing agencies (matched by license number) are updated; new ones are
+created.
+
+```bash
+cd backend
+npm run import:bmet -- ./data/sample-bmet.csv
+```
+
+The expected CSV columns are documented at the top of
+`backend/scripts/importBmet.ts`. A working sample is in
+`backend/data/sample-bmet.csv`. For the pitch, importing even a small slice of
+the **real** BMET list lets judges verify a genuine agency name live.
 
 ---
 

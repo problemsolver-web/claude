@@ -85,6 +85,7 @@ export const api = {
   trackComplaint: (trackingNumber: string) =>
     request<any>(`/complaints/track/${encodeURIComponent(trackingNumber)}`),
   getDestinations: () => request<{ destinations: any[]; count: number }>(`/destinations`),
+  getPublicStats: () => request<any>(`/stats/public`),
   smsVerify: (message: string) =>
     request<{ reply: string }>(`/sms/verify`, {
       method: "POST",

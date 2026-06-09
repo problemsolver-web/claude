@@ -10,6 +10,7 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma db push --force-reset && tsx prisma/seed.ts",
+    "import:bmet": "tsx scripts/importBmet.ts",
     "postinstall": "prisma generate"
   },
   "prisma": {

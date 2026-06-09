@@ -14,6 +14,7 @@ import smsRoutes from "./routes/sms";
 import authRoutes from "./routes/auth";
 import adminRoutes from "./routes/admin";
 import agencyPortalRoutes from "./routes/agencyPortal";
+import statsRoutes from "./routes/stats";
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.use(`${API}/agencies`, publicLimiter, agencyRoutes);
 app.use(`${API}/complaints`, publicLimiter, complaintRoutes);
 app.use(`${API}/destinations`, destinationRoutes);
 app.use(`${API}/sms`, publicLimiter, smsRoutes);
+app.use(`${API}/stats`, statsRoutes);
 app.use(`${API}/auth`, authRoutes);
 app.use(`${API}/admin`, adminRoutes);
 app.use(`${API}/agency-portal`, agencyPortalRoutes);

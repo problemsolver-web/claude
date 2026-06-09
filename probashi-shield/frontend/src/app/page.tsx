@@ -4,8 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { api, AgencySearchResult } from "@/lib/api";
 import RiskBadge, { StatusPill } from "@/components/RiskBadge";
+import { useI18n } from "@/lib/i18n";
 
 export default function HomePage() {
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const [type, setType] = useState("name");
   const [results, setResults] = useState<AgencySearchResult[] | null>(null);
@@ -32,14 +34,8 @@ export default function HomePage() {
     <div className="container-page">
       {/* Hero */}
       <section className="rounded-2xl bg-gradient-to-br from-brand to-brand-dark px-6 py-12 text-center text-white shadow-lg">
-        <h1 className="text-3xl font-extrabold sm:text-4xl">
-          Before you pay, verify the agent.
-        </h1>
-        <p className="mx-auto mt-3 max-w-2xl text-brand-light/90">
-          Every year thousands of Bangladeshi workers lose 3-5 lakh taka to fake
-          recruiting agents. Check any agency against the official BMET licensed
-          list in seconds - free.
-        </p>
+        <h1 className="text-3xl font-extrabold sm:text-4xl">{t("home.title")}</h1>
+        <p className="mx-auto mt-3 max-w-2xl text-brand-light/90">{t("home.subtitle")}</p>
 
         <form
           onSubmit={handleSearch}
@@ -50,22 +46,23 @@ export default function HomePage() {
             onChange={(e) => setType(e.target.value)}
             className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700"
           >
-            <option value="name">By Name</option>
-            <option value="license">By License #</option>
-            <option value="phone">By Phone</option>
+            <option value="name">{t("home.byName")}</option>
+            <option value="license">{t("home.byLicense")}</option>
+            <option value="phone">{t("home.byPhone")}</option>
           </select>
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="e.g. Gulf Gateway, RL-1024, 01711..."
+            placeholder={t("home.placeholder")}
             className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 outline-none focus:border-brand"
           />
           <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? "Searching..." : "Verify"}
+            {loading ? t("home.searching") : t("home.verify")}
           </button>
         </form>
         <p className="mt-3 text-xs text-brand-light/80">
-          Try: <button onClick={() => setQuery("Dubai Dream")} className="underline">Dubai Dream</button>
+          {t("home.try")}{" "}
+          <button onClick={() => setQuery("Dubai Dream")} className="underline">Dubai Dream</button>
           {" · "}
           <button onClick={() => setQuery("Al-Amin")} className="underline">Al-Amin</button>
           {" · "}
@@ -75,20 +72,17 @@ export default function HomePage() {
 
       {/* Results */}
       <section className="mt-8">
-        {error && (
-          <div className="card border-red-200 bg-red-50 text-red-700">{error}</div>
-        )}
+        {error && <div className="card border-red-200 bg-red-50 text-red-700">{error}</div>}
 
         {results && results.length === 0 && (
           <div className="card border-amber-200 bg-amber-50">
             <p className="font-semibold text-amber-800">
-              🟡 No licensed agency found matching &quot;{query}&quot;.
+              🟡 {t("home.noResultTitle")} &quot;{query}&quot;.
             </p>
             <p className="mt-1 text-sm text-amber-700">
-              This agency is NOT in the BMET licensed list. Do not send money
-              until you verify. If someone is using this name to collect money,{" "}
+              {t("home.noResultBody")}{" "}
               <Link href="/report" className="font-semibold underline">
-                report it here
+                {t("home.reportItHere")}
               </Link>
               .
             </p>
@@ -98,7 +92,7 @@ export default function HomePage() {
         {results && results.length > 0 && (
           <div className="space-y-4">
             <p className="text-sm text-slate-500">
-              {results.length} result{results.length > 1 ? "s" : ""} found
+              {results.length} {t("home.resultsFound")}
             </p>
             {results.map((a) => (
               <Link
@@ -109,25 +103,19 @@ export default function HomePage() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-bold text-slate-800">
-                        {a.agencyName}
-                      </h3>
+                      <h3 className="text-lg font-bold text-slate-800">{a.agencyName}</h3>
                       {a.verificationBadge === "premium" && (
-                        <span className="badge bg-blue-100 text-blue-700">
-                          ✓ Premium Verified
-                        </span>
+                        <span className="badge bg-blue-100 text-blue-700">✓ Premium Verified</span>
                       )}
                     </div>
                     <p className="mt-1 text-sm text-slate-500">
-                      License #{a.bmetLicenseNumber} ·{" "}
-                      {a.headOfficeLocation || "Location N/A"}
+                      License #{a.bmetLicenseNumber} · {a.headOfficeLocation || "Location N/A"}
                     </p>
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                       <StatusPill status={a.licenseStatus} />
                       {a.complaintCount > 0 && (
                         <span className="badge bg-slate-100 text-slate-600">
-                          {a.complaintCount} report
-                          {a.complaintCount > 1 ? "s" : ""}
+                          {a.complaintCount} {t("home.reports")}
                         </span>
                       )}
                     </div>
@@ -143,9 +131,9 @@ export default function HomePage() {
       {/* How it works */}
       <section className="mt-12 grid gap-4 sm:grid-cols-3">
         {[
-          { t: "1. Search", d: "Enter the agency name, BMET license number, or phone number." },
-          { t: "2. See the verdict", d: "Instantly know if they are licensed and how many fraud reports exist." },
-          { t: "3. Decide safely", d: "Never hand over your land money to an unverified agent again." },
+          { t: t("home.step1.t"), d: t("home.step1.d") },
+          { t: t("home.step2.t"), d: t("home.step2.d") },
+          { t: t("home.step3.t"), d: t("home.step3.d") },
         ].map((s) => (
           <div key={s.t} className="card">
             <h3 className="font-bold text-brand-dark">{s.t}</h3>
