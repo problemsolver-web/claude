@@ -1,0 +1,156 @@
+// Probashi Shield - Prisma schema
+// NOTE: Uses SQLite for zero-config local/demo runs. To deploy on PostgreSQL,
+// change `provider` to "postgresql" and set DATABASE_URL to your Postgres URL.
+// SQLite does not support native enums, so status fields use String with
+// documented allowed values (see comments).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String?  @unique
+  phone         String?  @unique
+  passwordHash  String
+  name          String?
+  // user_type: 'admin' | 'super_admin' | 'agency' | 'public'
+  userType      String   @default("public")
+  isVerified    Boolean  @default(false)
+  emailVerified Boolean  @default(false)
+  phoneVerified Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  lastLogin     DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // an agency-type user is linked to an agency they manage
+  managedAgencyId String?
+  managedAgency   Agency? @relation("AgencyManagers", fields: [managedAgencyId], references: [id])
+
+  auditLogs AuditLog[]
+}
+
+model Agency {
+  id                  String   @id @default(uuid())
+  bmetLicenseNumber   String   @unique
+  agencyName          String
+  ownerName           String?
+  phonePrimary        String
+  phoneSecondary      String?
+  email               String?
+  websiteUrl          String?
+  headOfficeLocation  String?
+  officeDivision      String?
+  licenseIssueDate    DateTime?
+  licenseExpiryDate   DateTime?
+  // license_status: 'active' | 'expired' | 'suspended' | 'revoked'
+  licenseStatus       String   @default("active")
+  // JSON-encoded array of country names
+  destinationCountries String?
+  isVerified          Boolean  @default(false)
+  // verification_badge_level: 'none' | 'basic' | 'premium'
+  verificationBadge   String   @default("none")
+  // blacklist_status: 'none' | 'temporary_blacklist' | 'permanent_blacklist'
+  blacklistStatus     String   @default("none")
+  blacklistReason     String?
+  blacklistExpiryDate DateTime?
+  lastUpdatedFromBmet DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  complaints       Complaint[]
+  verificationLogs VerificationLog[]
+  blacklistHistory BlacklistHistory[]
+  managers         User[]            @relation("AgencyManagers")
+
+  @@index([agencyName])
+  @@index([phonePrimary])
+}
+
+model Complaint {
+  id              String   @id @default(uuid())
+  agencyId        String
+  agency          Agency   @relation(fields: [agencyId], references: [id])
+  reporterName    String?
+  reporterPhone   String?
+  reporterEmail   String?
+  reporterLocation String?
+  // complaint_type: 'money_fraud' | 'job_mismatch' | 'visa_false' | 'salary_wrong' | 'missing_contact' | 'other'
+  complaintType   String
+  description     String
+  amountLost      Float?
+  // JSON-encoded array of file references
+  proofDocuments  String?
+  incidentDate    DateTime?
+  // status: 'submitted' | 'under_review' | 'contacted_for_info' | 'investigating' | 'verified_fraud' | 'resolved' | 'dismissed'
+  status          String   @default("submitted")
+  adminNotes      String?
+  isVerified      Boolean  @default(false)
+  // severity_level: 'low' | 'medium' | 'high' | 'critical'
+  severityLevel   String   @default("medium")
+  resolutionDate  DateTime?
+  trackingNumber  String   @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([agencyId])
+  @@index([status])
+}
+
+model DestinationCountry {
+  id                      String   @id @default(uuid())
+  countryName             String   @unique
+  countryCode             String?
+  officialRecruitmentFee  Float?
+  salaryRangeLow          Float?
+  salaryRangeHigh         Float?
+  // JSON-encoded array of job types
+  commonJobTypes          String?
+  embassyName             String?
+  embassyPhone            String?
+  embassyWebsite          String?
+  redFlagsSpecific        String?
+  avgProcessingDays       Int?
+  updatedAt               DateTime @updatedAt
+  createdAt               DateTime @default(now())
+}
+
+model VerificationLog {
+  id             String   @id @default(uuid())
+  agencyId       String?
+  agency         Agency?  @relation(fields: [agencyId], references: [id])
+  searchQuery    String
+  // search_type: 'by_name' | 'by_license' | 'by_phone' | 'sms'
+  searchType     String
+  channel        String   @default("web") // 'web' | 'sms'
+  resultFound    Boolean  @default(false)
+  createdAt      DateTime @default(now())
+}
+
+model BlacklistHistory {
+  id             String   @id @default(uuid())
+  agencyId       String
+  agency         Agency   @relation(fields: [agencyId], references: [id])
+  blacklistDate  DateTime @default(now())
+  reason         String
+  temporaryUntil DateTime?
+  addedByAdminId String?
+  action         String   @default("added") // 'added' | 'removed'
+  createdAt      DateTime @default(now())
+}
+
+model AuditLog {
+  id             String   @id @default(uuid())
+  adminUserId    String
+  adminUser      User     @relation(fields: [adminUserId], references: [id])
+  actionType     String
+  targetEntityId String?
+  details        String?
+  createdAt      DateTime @default(now())
+}
