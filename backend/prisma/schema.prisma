@@ -1,0 +1,372 @@
+// JobMatch BD — Prisma schema
+// Covers all platform entities so later phases (jobs, applications,
+// messaging, matching, notifications) build on a stable foundation.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum UserType {
+  COMPANY
+  JOB_SEEKER
+  ADMIN
+}
+
+enum ProficiencyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum ExperienceLevel {
+  ENTRY
+  JUNIOR
+  MID
+  SENIOR
+  LEAD
+}
+
+enum JobType {
+  REMOTE
+  ONSITE
+  HYBRID
+}
+
+enum JobStatus {
+  ACTIVE
+  CLOSED
+  EXPIRED
+  DRAFT
+}
+
+enum ApplicationStatus {
+  NEW
+  REVIEWED
+  SHORTLISTED
+  ACCEPTED
+  REJECTED
+}
+
+enum NotificationType {
+  APPLICATION_RECEIVED
+  APPLICATION_STATUS_CHANGED
+  MESSAGE_RECEIVED
+  MATCH_FOUND
+  INVITE_TO_APPLY
+  JOB_EXPIRING
+  ACCOUNT_ALERT
+}
+
+// ---------------------------------------------------------------------------
+// Core auth
+// ---------------------------------------------------------------------------
+
+model User {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  password        String
+  name            String
+  userType        UserType
+  emailVerified   Boolean  @default(false)
+  // OAuth (optional)
+  provider        String?  // "google" | "github" | null (local)
+  providerId      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  company         Company?
+  jobSeeker       JobSeeker?
+  tokens          VerificationToken[]
+  notifications   Notification[]
+  sentMessages    Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+
+  @@index([userType])
+  @@map("users")
+}
+
+// Email-verification and password-reset tokens (hashed).
+model VerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  type      String   // "EMAIL_VERIFY" | "PASSWORD_RESET"
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@map("verification_tokens")
+}
+
+// ---------------------------------------------------------------------------
+// Profiles
+// ---------------------------------------------------------------------------
+
+model Company {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  companyName String
+  logo        String?
+  description String?
+  website     String?
+  location    String?
+  industry    String?
+  companySize String?
+  verified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobPostings JobPosting[]
+  teamMembers TeamMember[]
+
+  @@map("companies")
+}
+
+// Additional recruiters / roles within a company.
+model TeamMember {
+  id        String   @id @default(cuid())
+  companyId String
+  userId    String
+  role      String   @default("recruiter") // owner | admin | recruiter
+  createdAt DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, userId])
+  @@map("team_members")
+}
+
+model JobSeeker {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  profilePicture    String?
+  headline          String?
+  bio               String?
+  location          String?
+  preferredLocations String[] @default([])
+  githubUrl         String?
+  expectedSalaryMin Int?
+  expectedSalaryMax Int?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills         Skill[]
+  experiences    Experience[]
+  education       Education[]
+  certifications Certification[]
+  resumes        Resume[]
+  projects       PortfolioProject[]
+  applications   Application[]
+  matches        Match[]
+
+  @@map("job_seekers")
+}
+
+model Skill {
+  id               String           @id @default(cuid())
+  jobSeekerId      String
+  skillName        String
+  proficiencyLevel ProficiencyLevel @default(INTERMEDIATE)
+
+  jobSeeker JobSeeker @relation(fields: [jobSeekerId], references: [id], onDelete: Cascade)
+
+  @@index([jobSeekerId])
+  @@index([skillName])
+  @@map("skills")
+}
+
+model Experience {
+  id          String    @id @default(cuid())
+  jobSeekerId String
+  company     String
+  position    String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  current     Boolean   @default(false)
+
+  jobSeeker JobSeeker @relation(fields: [jobSeekerId], references: [id], onDelete: Cascade)
+
+  @@index([jobSeekerId])
+  @@map("experiences")
+}
+
+model Education {
+  id             String  @id @default(cuid())
+  jobSeekerId    String
+  university     String
+  degree         String
+  field          String?
+  graduationYear Int?
+
+  jobSeeker JobSeeker @relation(fields: [jobSeekerId], references: [id], onDelete: Cascade)
+
+  @@index([jobSeekerId])
+  @@map("education")
+}
+
+model Certification {
+  id                String    @id @default(cuid())
+  jobSeekerId       String
+  certificationName String
+  issuer            String?
+  date              DateTime?
+
+  jobSeeker JobSeeker @relation(fields: [jobSeekerId], references: [id], onDelete: Cascade)
+
+  @@index([jobSeekerId])
+  @@map("certifications")
+}
+
+model Resume {
+  id          String   @id @default(cuid())
+  jobSeekerId String
+  fileUrl     String
+  fileName    String
+  isPrimary   Boolean  @default(false)
+  parsedText  String?  // extracted text for AI matching
+  uploadedAt  DateTime @default(now())
+
+  jobSeeker JobSeeker @relation(fields: [jobSeekerId], references: [id], onDelete: Cascade)
+
+  @@index([jobSeekerId])
+  @@map("resumes")
+}
+
+model PortfolioProject {
+  id           String   @id @default(cuid())
+  jobSeekerId  String
+  title        String
+  description  String?
+  link         String?
+  technologies String[] @default([])
+  createdAt    DateTime @default(now())
+
+  jobSeeker JobSeeker @relation(fields: [jobSeekerId], references: [id], onDelete: Cascade)
+
+  @@index([jobSeekerId])
+  @@map("portfolio_projects")
+}
+
+// ---------------------------------------------------------------------------
+// Marketplace
+// ---------------------------------------------------------------------------
+
+model JobPosting {
+  id              String          @id @default(cuid())
+  companyId       String
+  title           String
+  slug            String          @unique
+  description     String
+  skillsRequired  String[]        @default([])
+  experienceLevel ExperienceLevel @default(ENTRY)
+  salaryMin       Int?
+  salaryMax       Int?
+  location        String?
+  jobType         JobType         @default(ONSITE)
+  category        String?
+  benefits        String[]        @default([])
+  status          JobStatus       @default(ACTIVE)
+  deadline        DateTime?
+  viewsCount      Int             @default(0)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  company      Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  applications Application[]
+  matches      Match[]
+
+  @@index([companyId])
+  @@index([status])
+  @@index([category])
+  @@map("job_postings")
+}
+
+model Application {
+  id           String            @id @default(cuid())
+  jobSeekerId  String
+  jobPostingId String
+  status       ApplicationStatus @default(NEW)
+  coverLetter  String?
+  matchScore   Float?
+  appliedAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  jobSeeker  JobSeeker  @relation(fields: [jobSeekerId], references: [id], onDelete: Cascade)
+  jobPosting JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+
+  @@unique([jobSeekerId, jobPostingId])
+  @@index([jobPostingId])
+  @@index([status])
+  @@map("applications")
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  senderId    String
+  recipientId String
+  content     String
+  readAt      DateTime?
+  createdAt   DateTime @default(now())
+
+  sender    User @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient User @relation("ReceivedMessages", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([senderId])
+  @@index([recipientId])
+  @@map("messages")
+}
+
+model Match {
+  id           String   @id @default(cuid())
+  jobPostingId String
+  jobSeekerId  String
+  matchScore   Float
+  reason       Json?    // breakdown of why the match was made
+  invited      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  jobPosting JobPosting @relation(fields: [jobPostingId], references: [id], onDelete: Cascade)
+  jobSeeker  JobSeeker  @relation(fields: [jobSeekerId], references: [id], onDelete: Cascade)
+
+  @@unique([jobPostingId, jobSeekerId])
+  @@index([jobSeekerId])
+  @@map("matches")
+}
+
+// ---------------------------------------------------------------------------
+// Notifications
+// ---------------------------------------------------------------------------
+
+model Notification {
+  id                String           @id @default(cuid())
+  userId            String
+  notificationType  NotificationType
+  title             String
+  message           String
+  relatedEntityId   String?
+  relatedEntityType String?          // job_posting | application | message | match
+  isRead            Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
