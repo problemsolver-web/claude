@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { asyncHandler, AppError } from "../middleware/error";
 import { generateTrackingNumber } from "../utils/helpers";
+import { optionalAuth, requireAuth } from "../middleware/auth";
 
 const router = Router();
 
@@ -28,9 +29,10 @@ const complaintSchema = z.object({
   proofDocuments: z.array(z.string()).optional(),
 });
 
-// POST /api/v1/complaints  -> submit a fraud report (public, no auth)
+// POST /api/v1/complaints  -> submit a fraud report (public, optional auth)
 router.post(
   "/",
+  optionalAuth,
   asyncHandler(async (req, res) => {
     const data = complaintSchema.parse(req.body);
 
@@ -76,6 +78,7 @@ router.post(
     const complaint = await prisma.complaint.create({
       data: {
         agencyId,
+        userId: req.user?.userId ?? null,
         reporterName: data.reporterName || null,
         reporterPhone: data.reporterPhone || null,
         reporterEmail: data.reporterEmail || null,
@@ -97,6 +100,20 @@ router.post(
       complaintId: complaint.id,
       status: complaint.status,
     });
+  })
+);
+
+// GET /api/v1/complaints/mine -> reports filed by the logged-in user
+router.get(
+  "/mine",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const complaints = await prisma.complaint.findMany({
+      where: { userId: req.user!.userId },
+      orderBy: { createdAt: "desc" },
+      include: { agency: { select: { id: true, agencyName: true } } },
+    });
+    res.json({ count: complaints.length, complaints });
   })
 );
 

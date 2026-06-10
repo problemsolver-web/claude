@@ -33,7 +33,8 @@ model User {
   managedAgencyId String?
   managedAgency   Agency? @relation("AgencyManagers", fields: [managedAgencyId], references: [id])
 
-  auditLogs AuditLog[]
+  auditLogs          AuditLog[]
+  reportedComplaints Complaint[] @relation("UserComplaints")
 }
 
 model Agency {
@@ -77,6 +78,9 @@ model Complaint {
   id              String   @id @default(uuid())
   agencyId        String
   agency          Agency   @relation(fields: [agencyId], references: [id])
+  // optional link to the registered user who filed it (for "My Reports")
+  userId          String?
+  user            User?    @relation("UserComplaints", fields: [userId], references: [id])
   reporterName    String?
   reporterPhone   String?
   reporterEmail   String?

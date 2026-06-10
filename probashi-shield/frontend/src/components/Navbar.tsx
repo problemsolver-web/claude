@@ -17,6 +17,7 @@ export default function Navbar() {
     { href: "/sms", label: t("nav.sms") },
     { href: "/impact", label: t("nav.impact") },
     { href: "/track", label: t("nav.track") },
+    ...(user ? [{ href: "/my-reports", label: "My Reports" }] : []),
   ];
 
   return (

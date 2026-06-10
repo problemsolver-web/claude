@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { api, AgencyDetail } from "@/lib/api";
 import RiskBadge, { StatusPill } from "@/components/RiskBadge";
+import ShareAgency from "@/components/ShareAgency";
 
 const typeLabels: Record<string, string> = {
   money_fraud: "Money fraud",
@@ -95,7 +96,8 @@ export default function AgencyDetailPage() {
           )}
         </div>
 
-        {/* Complaint summary */}
+        {/* Right column */}
+        <div className="space-y-6">
         <div className="card">
           <h2 className="mb-3 font-bold text-slate-800">Fraud Reports</h2>
           <div className="space-y-2 text-sm">
@@ -106,6 +108,8 @@ export default function AgencyDetailPage() {
           <Link href={`/report?agencyId=${agency.id}`} className="btn-primary mt-4 w-full">
             Report this agency
           </Link>
+        </div>
+        <ShareAgency agencyName={agency.agencyName} />
         </div>
       </div>
 

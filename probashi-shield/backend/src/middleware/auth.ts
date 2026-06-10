@@ -38,3 +38,18 @@ export function requireRole(...roles: string[]) {
 }
 
 export const requireAdmin = requireRole("admin", "super_admin");
+
+// Attaches req.user if a valid token is present, but does NOT block the request
+// if it's missing/invalid. Used for endpoints that work anonymously but can
+// personalise when the user happens to be logged in (e.g. fraud reports).
+export function optionalAuth(req: Request, _res: Response, next: NextFunction) {
+  const header = req.headers.authorization;
+  if (header && header.startsWith("Bearer ")) {
+    try {
+      req.user = verifyToken(header.substring(7));
+    } catch {
+      // ignore invalid token, continue as anonymous
+    }
+  }
+  next();
+}

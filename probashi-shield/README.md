@@ -40,6 +40,9 @@ probashi-shield/
 
 > 🎤 **Presenting this?** Read **[PITCH.md](./PITCH.md)** — it has the word-for-word
 > pitch, a 90-second demo script, and prepared answers to tough judge questions.
+>
+> 🚀 **Going live?** Follow **[DEPLOY.md](./DEPLOY.md)** — free step-by-step
+> deployment (Neon + Render + Vercel) to get a public, installable link.
 
 ---
 
@@ -118,6 +121,12 @@ Admin dashboard: <http://localhost:3000/admin/login>
    reports filed, verified fraud, money-loss reported, fraud-type breakdown.
 9. **Ministry dashboard** (`/admin`) — metrics, complaint management, one-click
    blacklist.
+10. **Sign up / sign in** (`/signup`, `/login`) — registered users get a
+   **My Reports** page (`/my-reports`) listing every report they filed.
+11. **Installable app (PWA)** — "Add to Home Screen" gives a home-screen icon
+   and fullscreen launch, no app store needed.
+12. **Share + QR** — every agency page has a scannable QR code to share its
+   verification status (great for the live demo).
 
 ---
 
