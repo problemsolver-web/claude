@@ -1,0 +1,14 @@
+{
+  "task_id": "task-job-marketplace",
+  "task_description": "Build a production-grade AI-powered job marketplace platform for Bangladesh and emerging markets. Full system with Next.js 16 App Router, Supabase backend, deterministic AI matching engine, role-based auth (jobseeker/employer), real application workflow, employer dashboard, and real-time messaging (unlocked only after acceptance).",
+  "status": "completed",
+  "feature_order": ["FEAT-001", "FEAT-002", "FEAT-003", "FEAT-004", "FEAT-005"],
+  "blocked_reason": null,
+  "verification": {
+    "build": "pass",
+    "tests": "pass",
+    "test_quality": "pass",
+    "docker_build": "skipped",
+    "summary": "npm run build succeeds (Next.js 16.2.9 Turbopack, 18 pages, 20 routes). npm run lint passes with no errors. All 5 features implemented and verified. Semantic review v2 APPROVED after fixing 5 critical issues from v1 (broken logout, pagination off-by-one, role escalation, N+1 queries, seed migration docs). 3 non-blocking improvement suggestions remain for future hardening."
+  }
+}

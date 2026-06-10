@@ -1,0 +1,28 @@
+{
+  "project_type": "Next.js 14 App Router full-stack application with Supabase backend",
+  "language": "TypeScript",
+  "build_system": "Next.js with npm, TailwindCSS for styling",
+  "test_framework": "TypeScript compiler for type checking, ESLint for linting",
+  "build_command": "npm run build",
+  "test_command": "npm run lint",
+  "verification_instructions": "1. Run npm run build to verify TypeScript compilation and Next.js build succeeds. 2. Run npm run lint to check code quality.",
+  "snapshot_or_generated_files": "Supabase migration files in supabase/migrations/ define the database schema. These are authored, not generated.",
+  "setup_instructions": "1. cd /projects/sandbox && npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias '@/*' --use-npm. 2. npm install @supabase/supabase-js @supabase/ssr uuid date-fns. 3. Configure environment variables in .env.local.",
+  "environment_constraints": "OPEN_INTERNET mode - full npm registry access. No actual Supabase project provisioned - code must gracefully handle missing connection with setup instructions page. Node.js v22 available via nvm. The app must build successfully without a live Supabase connection.",
+  "contribution_requirements": "Greenfield project. Follow Next.js App Router conventions: server components by default, client components only for interactivity, server actions for data mutations, middleware for auth session refresh.",
+  "key_patterns": "Next.js 14 App Router patterns: app/ directory for routing, layout.tsx for shared layouts, page.tsx for routes, server actions via 'use server' for mutations, middleware.ts for auth session. Supabase patterns: createBrowserClient for client components, createServerClient for server components/actions, Row Level Security policies for data access control. TailwindCSS for all styling with a professional blue/teal theme.",
+  "relevant_files": [
+    "src/app/layout.tsx",
+    "src/app/page.tsx",
+    "src/lib/supabase/client.ts",
+    "src/lib/supabase/server.ts",
+    "src/lib/matching/engine.ts",
+    "src/lib/matching/scoring.ts",
+    "supabase/migrations/",
+    "src/app/(auth)/",
+    "src/app/(dashboard)/",
+    "src/components/",
+    "src/types/database.ts"
+  ],
+  "directory_structure": "src/app/ - Next.js App Router pages and layouts (route groups: (auth), (dashboard), (public)). src/app/(auth)/ - login, register pages. src/app/(dashboard)/jobseeker/ - job seeker dashboard pages. src/app/(dashboard)/employer/ - employer dashboard pages. src/components/ - reusable UI components (ui/, forms/, layout/). src/lib/ - utilities, Supabase clients, matching engine. src/lib/matching/ - AI matching algorithm (pure TypeScript scoring). src/types/ - TypeScript type definitions. supabase/migrations/ - SQL migration files. public/ - static assets."
+}

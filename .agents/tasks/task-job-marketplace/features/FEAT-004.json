@@ -1,0 +1,1 @@
+{"id":"FEAT-004","status":"completed","findings":["Build and lint pass cleanly with Next.js 16.2.9 Turbopack","params is a Promise and must be awaited in dynamic route pages","Supabase realtime uses channel pattern with postgres_changes event filter","All messaging routes render as dynamic (server-rendered on demand) as expected"]}
