@@ -1,0 +1,52 @@
+{
+  "id": "FEAT-001",
+  "type": "chore",
+  "description": "Initialize Next.js 14 project with TypeScript, TailwindCSS, Supabase integration, database schema migrations, type definitions, core utilities, and authentication system (login/register with role-based access).",
+  "status": "completed",
+  "steps": [
+    "Run `npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias '@/*' --use-npm` in /projects/sandbox/ to bootstrap the Next.js project",
+    "Install dependencies: npm install @supabase/supabase-js @supabase/ssr uuid date-fns",
+    "Install dev dependencies: npm install -D @types/uuid",
+    "Create .env.example with all required environment variables: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY",
+    "Create .env.local with placeholder values (NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321, NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here, SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here) so the app can build",
+    "Create src/lib/supabase/client.ts - browser Supabase client using createBrowserClient from @supabase/ssr",
+    "Create src/lib/supabase/server.ts - server-side Supabase client using createServerClient from @supabase/ssr with cookies",
+    "Create src/lib/supabase/middleware.ts - middleware helper for session refresh",
+    "Create src/middleware.ts - Next.js middleware that refreshes Supabase auth session and protects /dashboard routes (redirects unauthenticated users to /login)",
+    "Create src/types/database.ts - Full TypeScript types matching the database schema: User (id, email, full_name, role: 'jobseeker'|'employer', phone, location, bio, degree, degree_field, experience_years, skills: string[], languages: string[], preferred_job_categories: string[], avatar_url, created_at, updated_at), Company (id, owner_id, name, description, industry, location, website, logo_url, verified, created_at, updated_at), Job (id, company_id, title, description, requirements, required_skills: string[], preferred_skills: string[], degree_requirement, experience_min, experience_max, job_category, location, salary_min, salary_max, employment_type: 'full-time'|'part-time'|'contract'|'internship', is_active, created_at, updated_at), Application (id, job_id, user_id, status: 'pending'|'shortlisted'|'accepted'|'rejected', match_score, score_breakdown: JSON, cover_letter, applied_at, updated_at), Conversation (id, application_id, company_id, user_id, created_at, updated_at), Message (id, conversation_id, sender_id, content, read, created_at)",
+    "Create supabase/migrations/00001_initial_schema.sql with complete database schema including all tables, enums (user_role, employment_type, application_status), foreign keys, unique constraints (applications: unique on job_id+user_id), timestamps with defaults",
+    "Create supabase/migrations/00002_rls_policies.sql with Row Level Security policies: users can read any profile but update only own, employers can manage own company and jobs, job seekers can apply to active jobs (one application per job enforced by unique constraint), application status changes only by job's company owner, conversations/messages only accessible to participants AND only when application status is 'accepted'",
+    "Create supabase/migrations/00003_indexes.sql with performance indexes: jobs(company_id), jobs(is_active, job_category), jobs(location), applications(job_id), applications(user_id), applications(status), messages(conversation_id, created_at), users(role)",
+    "Update tailwind.config.ts with custom colors: primary (professional blue: 50-900 scale), secondary (teal: 50-900 scale), accent colors. Add custom font family.",
+    "Update src/app/layout.tsx with: Inter font from next/font/google, proper metadata (title: 'BDJobs AI - Smart Job Marketplace for Bangladesh', description), TailwindCSS body classes",
+    "Create src/app/(auth)/login/page.tsx - login page with email/password form, role indicator, link to register. Uses server action for Supabase signInWithPassword. Redirects to appropriate dashboard based on role.",
+    "Create src/app/(auth)/register/page.tsx - registration page with: email, password, full_name, role selection (jobseeker/employer radio buttons). Uses server action for Supabase signUp. Creates user profile in users table after signup.",
+    "Create src/app/(auth)/layout.tsx - centered card layout for auth pages with branding",
+    "Create src/lib/actions/auth.ts - server actions: login(formData), register(formData), logout(). Login action checks user role and redirects to /dashboard/jobseeker or /dashboard/employer accordingly.",
+    "Create src/app/(auth)/callback/route.ts - auth callback route handler for Supabase email confirmation flow",
+    "Create src/components/ui/button.tsx - reusable Button component with variants (primary, secondary, outline, ghost, danger) and sizes (sm, md, lg)",
+    "Create src/components/ui/input.tsx - reusable Input component with label, error state, and helper text",
+    "Create src/components/ui/card.tsx - reusable Card component with header, body, footer sections",
+    "Create src/components/ui/badge.tsx - Badge component for status indicators (pending=yellow, shortlisted=blue, accepted=green, rejected=red)",
+    "Create src/components/ui/select.tsx - reusable Select dropdown component",
+    "Create src/components/layout/navbar.tsx - responsive navigation bar with: logo/brand, conditional links based on auth state and role, user menu dropdown with logout",
+    "Create src/app/page.tsx - public landing page with: hero section (headline about BD job market + AI matching), feature highlights (smart matching, real applications, employer dashboard, messaging), CTA buttons to register/login. Must be visually polished.",
+    "Ensure the entire app builds with `npm run build` without errors - handle cases where Supabase env vars are placeholders by using conditional checks in server components"
+  ],
+  "acceptance_criteria": [
+    "npm run build succeeds without TypeScript errors",
+    "npm run lint passes without errors",
+    "All Supabase migration SQL files exist in supabase/migrations/ and are syntactically valid SQL",
+    "TypeScript types in database.ts match the migration schema exactly",
+    "Auth pages (login, register) render correctly",
+    "Landing page renders with hero section and CTAs",
+    "Middleware protects dashboard routes",
+    "UI components (button, input, card, badge) are created and exported properly"
+  ],
+  "verification": [
+    "Run `npm run build` and confirm exit code 0",
+    "Run `npm run lint` and confirm no errors"
+  ],
+  "blocked_reason": null,
+  "findings": "Next.js 16.2.9 was installed (latest version of create-next-app). The 'middleware' file convention is deprecated in Next.js 16 - renamed to 'proxy.ts' with an exported 'proxy' function. Tailwind CSS v4 uses CSS-based theme configuration (@theme inline in globals.css) instead of tailwind.config.ts. The Database generic type was removed from createServerClient/createBrowserClient calls due to type inference issues with Supabase's expected schema format - type casting is used instead where needed."
+}
