@@ -1,0 +1,6 @@
+bmetLicenseNumber,agencyName,ownerName,phonePrimary,phoneSecondary,email,websiteUrl,headOfficeLocation,officeDivision,licenseIssueDate,licenseExpiryDate,licenseStatus,destinationCountries
+RL-1500,Bengal Star Recruiting Agency,Abdur Rahman,01712345678,,info@bengalstar.example,https://bengalstar.example,"Motijheel, Dhaka",Dhaka,2021-04-10,2027-04-09,active,Saudi Arabia;UAE;Qatar
+RL-1622,Padma International Manpower,Salma Begum,01819876543,,contact@padmaintl.example,,"Khulna Sadar, Khulna",Khulna,2020-09-01,2026-08-31,active,Malaysia;Singapore
+RL-1733,Surma Overseas Ltd,Jahangir Alam,01911223344,,,,"Zindabazar, Sylhet",Sylhet,2019-02-15,2025-02-14,expired,UAE
+RL-1844,Jamuna Gulf Services,Nasir Uddin,01655667788,,jamunagulf@example.com,,"Bogura Sadar, Bogura",Rajshahi,2022-07-20,2028-07-19,active,Qatar;Kuwait
+RL-1955,Royal Manpower Consultants,Farhana Yasmin,01533445566,,royalmanpower@example.com,https://royalmanpower.example,"Agrabad, Chattogram",Chattogram,2023-01-05,2029-01-04,active,Saudi Arabia;Oman
